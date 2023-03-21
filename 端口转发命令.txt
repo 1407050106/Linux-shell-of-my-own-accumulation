@@ -1,0 +1,31 @@
+自测：
+iptables -t nat -A PREROUTING -i wlan0 -p tcp -j DNAT --to 192.168.1.1:8193
+iptables -t nat -A POSTROUTING -o wlan0 -j SNAT --to 192.168.0.21
+iptables -t nat -A PREROUTING -i wlan0 -d 192.168.84.20 -p tcp --dport 8193 -j DNAT --to 192.168.1.1:8193
+iptables -t nat -A POSTROUTING -o br0 -d 192.168.1.0/24 -j SNAT --to 192.168.1.128
+丹佛斯：
+iptables -A INPUT  -i lo -j ACCEPT
+iptables -A OUTPUT -o lo -j ACCEPT
+iptables -t nat -A PREROUTING --dst 10.79.47.45 -p tcp --dport 8193 -j DNAT --to-destination 192.168.1.18:8193
+iptables -t nat -A POSTROUTING --dst 192.168.1.18 -p tcp --dport 8193 -j SNAT --to-source  192.168.1.118
+测试成功：
+iptables -t nat -A PREROUTING -i wlan0 -d 192.168.84.20 -p tcp --dport 8193 -j DNAT --to 192.168.1.1:8193 #change destination address
+iptables -t nat -A POSTROUTING -o br0 -d 192.168.1.0/24 -j SNAT --to 192.168.1.128
+桥接：（brctl）
+ip link add name br0 type bridge
+ip link set eth0 master br0
+ip link set eth1 master br0
+ifconfig eth0 up
+ifconfig eth1 up
+bridge link
+ip link set br0 up
+#ifconfig br0:0 192.168.254.254 netmask 255.255.255.0
+ip addr add dev br0 192.168.1.128/24
+ifconfig br0 netmask 255.255.255.0
+ifconfig br0 hw ether 5E:AA:55:C5:B5:0D
+添加网关
+route add default gw 10.23.97.254
+route add –net 10.23.104.0 netmask 255.255.255.0 gw 10.23.97.254  //访问104网段就要经过97网关
+万里扬用的
+iptables -t nat -A PREROUTING -i usb0 -d 11.0.28.89 -p tcp --dport 8193 -j DNAT --to 192.168.1.1:8193
+iptables -t nat -A POSTROUTING -o eth0 -d 192.168.1.0/24 -j SNAT --to 192.168.1.128
